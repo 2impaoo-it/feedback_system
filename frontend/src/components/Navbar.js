@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import NotificationCenter from './NotificationCenter';
 
 const Navbar = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ const Navbar = ({ user, onLogout }) => {
             </div>
             
             <div className="navbar-user">
+              <NotificationCenter user={user} />
               <span className="user-info">
                 Welcome, {user.name || user.username || user.email || 'User'}
               </span>

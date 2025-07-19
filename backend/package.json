@@ -27,7 +27,13 @@
     "axios": "^1.5.0",
     "joi": "^17.9.2",
     "morgan": "^1.10.0",
-    "compression": "^1.7.4"
+    "compression": "^1.7.4",
+    "nodemailer": "^6.9.4",
+    "multer": "^1.4.5-lts.1",
+    "xlsx": "^0.18.5",
+    "pdfkit": "^0.14.0",
+    "moment": "^2.29.4",
+    "express-validator": "^7.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1",

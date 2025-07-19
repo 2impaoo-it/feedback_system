@@ -6,11 +6,13 @@ const {
     FeedbackCategory, 
     FeedbackHistory, 
     Notification,
-    Analytics 
+    Analytics,
+    User
 } = require('../models');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 const { validate, schemas } = require('../middleware/validation');
 const { feedbackLimiter } = require('../middleware/rateLimiter');
+// const emailService = require('../services/emailService');
 const dbConfig = require('../config/db');
 const axios = require('axios');
 
@@ -434,6 +436,47 @@ router.put('/:id',
             });
             await historyEntry.save();
 
+            // Send email notifications for status changes
+            if (updates.status && updates.status !== oldValues.status) {
+                try {
+                    // Get populated feedback for email
+                    const populatedFeedback = await Feedback.findById(feedback._id)
+                        .populate('customerId', 'firstName lastName email')
+                        .populate('assignedTo', 'firstName lastName email');
+
+                    // Notify customer about status change
+                    if (populatedFeedback.customerId && populatedFeedback.customerId.email) {
+                        // await emailService.sendStatusUpdateEmail(
+                        //     populatedFeedback,
+                        //     populatedFeedback.customerId,
+                        //     oldValues.status,
+                        //     updates.status
+                        // );
+                    }
+
+                    // Notify assigned user if different from updater
+                    if (populatedFeedback.assignedTo && 
+                        populatedFeedback.assignedTo.email && 
+                        populatedFeedback.assignedTo._id.toString() !== req.user._id.toString()) {
+                        // Create a simplified customer object for the assigned user notification
+                        const assignedUserAsCustomer = {
+                            email: populatedFeedback.assignedTo.email,
+                            firstName: populatedFeedback.assignedTo.firstName,
+                            lastName: populatedFeedback.assignedTo.lastName
+                        };
+                        // await emailService.sendStatusUpdateEmail(
+                        //     populatedFeedback,
+                        //     assignedUserAsCustomer,
+                        //     oldValues.status,
+                        //     updates.status
+                        // );
+                    }
+                } catch (emailError) {
+                    console.error('Email notification error:', emailError);
+                    // Don't fail the update if email fails
+                }
+            }
+
             // Clear caches
             await cache.del(`feedback:${id}`);
             await cache.del('feedbacks:list');
@@ -565,6 +608,26 @@ router.post('/:id/assign',
                     priority: feedback.priority === 'urgent' ? 'high' : 'medium'
                 });
                 await notification.save();
+
+                // Send email notification to assigned user
+                try {
+                    const assignedUser = await User.findById(assignedTo);
+                    const populatedFeedback = await Feedback.findById(feedback._id)
+                        .populate('customerId', 'firstName lastName company')
+                        .populate('categoryId', 'name');
+
+                    if (assignedUser && assignedUser.email && populatedFeedback.customerId) {
+                        // await emailService.sendAssignmentEmail(
+                        //     populatedFeedback,
+                        //     assignedUser,
+                        //     populatedFeedback.customerId,
+                        //     req.user
+                        // );
+                    }
+                } catch (emailError) {
+                    console.error('Assignment email notification error:', emailError);
+                    // Don't fail the assignment if email fails
+                }
             }
 
             // Clear caches

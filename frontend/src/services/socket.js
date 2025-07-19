@@ -1,5 +1,6 @@
 import io from 'socket.io-client';
 import toast from 'react-hot-toast';
+import { useState, useEffect } from 'react';
 
 class SocketService {
   constructor() {
@@ -19,7 +20,8 @@ class SocketService {
       this.disconnect();
     }
 
-    const serverUrl = process.env.REACT_APP_SERVER_URL || 'http://localhost:3001';
+    // Direct connection to backend
+    const serverUrl = 'http://localhost:3001';
     
     this.socket = io(serverUrl, {
       transports: ['websocket', 'polling'],
@@ -373,5 +375,40 @@ class SocketService {
 
 // Create singleton instance
 const socketService = new SocketService();
+
+// React hook for using socket service
+export const useSocket = () => {
+  const [isConnected, setIsConnected] = useState(socketService.isConnected);
+  const [socket, setSocket] = useState(socketService.socket);
+
+  useEffect(() => {
+    const handleConnect = () => setIsConnected(true);
+    const handleDisconnect = () => setIsConnected(false);
+
+    if (socketService.socket) {
+      socketService.socket.on('connect', handleConnect);
+      socketService.socket.on('disconnect', handleDisconnect);
+      setSocket(socketService.socket);
+      setIsConnected(socketService.socket.connected);
+    }
+
+    return () => {
+      if (socketService.socket) {
+        socketService.socket.off('connect', handleConnect);
+        socketService.socket.off('disconnect', handleDisconnect);
+      }
+    };
+  }, []);
+
+  return {
+    socket,
+    isConnected,
+    connect: socketService.connect.bind(socketService),
+    disconnect: socketService.disconnect.bind(socketService),
+    emit: socketService.emit.bind(socketService),
+    on: socketService.on.bind(socketService),
+    off: socketService.off.bind(socketService)
+  };
+};
 
 export default socketService;

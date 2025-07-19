@@ -16,6 +16,8 @@ const authRoutes = require('./routes/auth');
 const feedbackRoutes = require('./routes/feedback');
 const categoryRoutes = require('./routes/categories');
 const userRoutes = require('./routes/users');
+// const exportRoutes = require('./routes/export');
+const attachmentRoutes = require('./routes/attachments');
 
 // Initialize Express app
 const app = express();
@@ -93,6 +95,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/users', userRoutes);
+// app.use('/api/export', exportRoutes);
+app.use('/api/attachments', attachmentRoutes);
+
+// Initialize services
+// const emailService = require('./services/emailService');
+// emailService.startEmailWorker();
 
 // Socket.IO WebSocket handling
 const wsRateLimiter = new WebSocketRateLimiter();

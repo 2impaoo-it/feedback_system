@@ -3,7 +3,7 @@ import toast from 'react-hot-toast';
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
+  baseURL: 'http://localhost:3001/api', // Direct backend connection
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -32,9 +32,23 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
+    console.log('📡 API Response:', {
+      url: response.config.url,
+      method: response.config.method,
+      status: response.status,
+      data: response.data
+    });
     return response.data;
   },
   (error) => {
+    console.error('📡 API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    
     const { response } = error;
     
     if (response) {
@@ -91,6 +105,28 @@ export const authAPI = {
   getNotifications: (params) => api.get('/auth/notifications', { params }),
   markNotificationRead: (id) => api.put(`/auth/notifications/${id}/read`),
   markAllNotificationsRead: () => api.put('/auth/notifications/read-all'),
+};
+
+// Export/Import API
+export const exportAPI = {
+  exportExcel: (filters) => api.get('/export/feedback/excel', { params: filters }),
+  exportPDF: (filters) => api.get('/export/feedback/pdf', { params: filters }),
+  exportCSV: (filters) => api.get('/export/feedback/csv', { params: filters }),
+  importFeedback: (formData) => api.post('/export/import/feedback', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  downloadFile: (filename) => api.get(`/export/download/${filename}`, { responseType: 'blob' }),
+  getImportTemplate: () => api.get('/export/templates/import', { responseType: 'blob' }),
+  emailReport: (data) => api.post('/export/email/report', data)
+};
+
+// Attachments API
+export const attachmentsAPI = {
+  upload: (formData) => api.post('/attachments/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  download: (filename) => api.get(`/attachments/${filename}`, { responseType: 'blob' }),
+  cleanup: (days) => api.delete(`/attachments/cleanup?days=${days}`)
 };
 
 // Feedback API

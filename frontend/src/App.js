@@ -21,6 +21,7 @@ import Categories from './components/Categories';
 import Profile from './components/Profile';
 import UserManagement from './components/UserManagement';
 import CreateSuperAdmin from './components/CreateSuperAdmin';
+import ExportImport from './components/ExportImport';
 import NotFound from './components/NotFound';
 
 // Services
@@ -263,6 +264,19 @@ function App() {
                           element={
                             <ProtectedRoute user={user}>
                               <Profile user={user} onUpdateUser={updateUser} />
+                            </ProtectedRoute>
+                          }
+                        />
+                        
+                        {/* Export/Import - Only for admin and superAdmin */}
+                        <Route
+                          path="/export"
+                          element={
+                            <ProtectedRoute 
+                              user={user} 
+                              allowedRoles={['admin', 'moderator', 'superAdmin']}
+                            >
+                              <ExportImport user={user} />
                             </ProtectedRoute>
                           }
                         />
