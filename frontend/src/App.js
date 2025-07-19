@@ -59,7 +59,10 @@ function App() {
     if (isAuthenticated && user) {
       const token = localStorage.getItem('token');
       if (token) {
-        socketService.connect(token, user.id);
+        // Use user._id instead of user.id
+        const userId = user._id || user.id;
+        console.log('Connecting socket with userId:', userId, 'and token:', token);
+        socketService.connect(token, userId);
         
         // Listen for connection status changes
         socketService.on('connection_status', setConnectionStatus);

@@ -10,6 +10,7 @@ require('dotenv').config();
 // Import configurations and middleware
 const dbConfig = require('./config/db');
 const { generalLimiter, WebSocketRateLimiter } = require('./middleware/rateLimiter');
+const sessionManager = require('./middleware/sessionManager');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -102,6 +103,9 @@ app.use('/api/attachments', attachmentRoutes);
 // const emailService = require('./services/emailService');
 // emailService.startEmailWorker();
 
+// Store Socket.IO instance for routes to access
+app.set('io', io);
+
 // Socket.IO WebSocket handling
 const wsRateLimiter = new WebSocketRateLimiter();
 wsRateLimiter.startCleanup();
@@ -138,6 +142,9 @@ io.on('connection', (socket) => {
             socket.userId = user._id.toString();
             socket.userRole = user.role;
             socket.userEmail = user.email;
+
+            // Update session with socket ID
+            sessionManager.updateSocketId(user._id.toString(), socket.id);
 
             // Add to connected users
             connectedUsers.set(socket.id, {
@@ -318,6 +325,9 @@ io.on('connection', (socket) => {
     socket.on('disconnect', (reason) => {
         console.log(`📡 Client disconnected: ${socket.id}, reason: ${reason}`);
         
+        // Remove socket from session manager
+        sessionManager.removeSessionBySocket(socket.id);
+        
         // Remove from connected users
         connectedUsers.delete(socket.id);
 
@@ -336,17 +346,34 @@ io.on('connection', (socket) => {
     });
 });
 
-// WebSocket connection monitoring
+// WebSocket connection monitoring with detailed stats
 setInterval(() => {
     const connectedCount = connectedUsers.size;
-    console.log(`📊 Connected users: ${connectedCount}`);
+    const authenticatedUsers = Array.from(connectedUsers.values()).filter(user => user.userId);
+    const usersByRole = {
+        admin: authenticatedUsers.filter(user => user.role === 'admin').length,
+        moderator: authenticatedUsers.filter(user => user.role === 'moderator').length,
+        customer: authenticatedUsers.filter(user => user.role === 'customer').length,
+        guest: connectedUsers.size - authenticatedUsers.length
+    };
     
-    // Emit connection stats to admin users
-    io.to('role:admin').emit('connection_stats', {
+    console.log(`📊 Connected users: ${connectedCount} (Authenticated: ${authenticatedUsers.length})`);
+    console.log(`📊 By role - Admin: ${usersByRole.admin}, Moderator: ${usersByRole.moderator}, Customer: ${usersByRole.customer}, Guest: ${usersByRole.guest}`);
+    
+    // Emit detailed connection stats to all authenticated users
+    io.emit('connection_stats', {
         connectedUsers: connectedCount,
+        authenticatedUsers: authenticatedUsers.length,
+        usersByRole: usersByRole,
+        onlineUsers: authenticatedUsers.map(user => ({
+            id: user.userId,
+            email: user.email,
+            role: user.role,
+            connectedAt: user.connectedAt
+        })),
         timestamp: new Date()
     });
-}, 30000); // Every 30 seconds
+}, 10000); // Every 10 seconds for more frequent updates
 
 // Error handling middleware
 app.use((err, req, res, next) => {

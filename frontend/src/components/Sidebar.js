@@ -14,43 +14,43 @@ import {
 const Sidebar = ({ user, isOpen, onClose }) => {
   const navigation = [
     {
-      name: 'Dashboard',
+      name: 'Bảng điều khiển',
       href: '/',
       icon: FiHome,
       roles: ['admin', 'superAdmin']
     },
     {
-      name: 'My Feedback',
+      name: 'Phản hồi của tôi',
       href: '/feedback',
       icon: FiMessageSquare,
       roles: ['customer', 'admin', 'superAdmin']
     },
     {
-      name: 'Create Feedback',
+      name: 'Tạo phản hồi',
       href: '/feedback/new',
       icon: FiPlus,
       roles: ['customer', 'admin', 'superAdmin']
     },
     {
-      name: 'All Feedback',
+      name: 'Tất cả phản hồi',
       href: '/feedback/all',
       icon: FiList,
       roles: ['admin', 'superAdmin']
     },
     {
-      name: 'Analytics',
+      name: 'Phân tích',
       href: '/analytics',
       icon: FiBarChart2,
       roles: ['admin', 'superAdmin']
     },
     {
-      name: 'Categories',
+      name: 'Danh mục',
       href: '/categories',
       icon: FiSettings,
       roles: ['admin', 'superAdmin']
     },
     {
-      name: 'User Management',
+      name: 'Quản lý người dùng',
       href: '/users',
       icon: FiUsers,
       roles: ['superAdmin']
@@ -79,7 +79,7 @@ const Sidebar = ({ user, isOpen, onClose }) => {
       `}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <h1 className="text-xl font-bold text-gray-900">
-            Feedback System
+            Hệ thống Phản hồi
           </h1>
           <button
             onClick={onClose}

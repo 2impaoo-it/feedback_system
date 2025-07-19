@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
+const sessionManager = require('./sessionManager');
 
 /**
  * JWT Authentication Middleware
@@ -27,6 +28,15 @@ const authenticateToken = async (req, res, next) => {
             return res.status(401).json({
                 success: false,
                 message: 'Invalid or expired token'
+            });
+        }
+
+        // Check session validity
+        const isValidSession = sessionManager.validateSession(user._id.toString(), token);
+        if (!isValidSession) {
+            return res.status(401).json({
+                success: false,
+                message: 'Session expired or invalid'
             });
         }
 

@@ -35,12 +35,12 @@ const FeedbackList = ({ user }) => {
         setFeedback(response.data || []);
       } else {
         console.log('API error:', response.message);
-        setError('Failed to fetch feedback');
+        setError('Không thể tải phản hồi');
         setFeedback([]);
       }
     } catch (error) {
       console.error('Error fetching feedback:', error);
-      setError('Failed to fetch feedback');
+      setError('Không thể tải phản hồi');
       setFeedback([]); // Ensure feedback is always an array
     } finally {
       setLoading(false);
@@ -87,14 +87,14 @@ const FeedbackList = ({ user }) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">
-          {user.role === 'customer' ? 'My Feedback' : 'All Feedback'}
+          {user.role === 'customer' ? 'Phản hồi của tôi' : 'Tất cả phản hồi'}
         </h1>
         {user.role === 'customer' && (
           <Link
             to="/feedback/new"
             className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
           >
-            New Feedback
+            Phản hồi mới
           </Link>
         )}
       </div>
@@ -110,60 +110,60 @@ const FeedbackList = ({ user }) => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search
+              Tìm kiếm
             </label>
             <input
               type="text"
               value={filters.search}
               onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              placeholder="Search feedback..."
+              placeholder="Tìm kiếm phản hồi..."
               className="w-full border border-gray-300 rounded-md px-3 py-2"
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
+              Trạng thái
             </label>
             <select
               value={filters.status}
               onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
               className="w-full border border-gray-300 rounded-md px-3 py-2"
             >
-              <option value="">All Status</option>
-              <option value="new">New</option>
-              <option value="in_progress">In Progress</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
+              <option value="">Tất cả trạng thái</option>
+              <option value="new">Mới</option>
+              <option value="in_progress">Đang xử lý</option>
+              <option value="resolved">Đã giải quyết</option>
+              <option value="closed">Đã đóng</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Priority
+              Mức độ ưu tiên
             </label>
             <select
               value={filters.priority}
               onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
               className="w-full border border-gray-300 rounded-md px-3 py-2"
             >
-              <option value="">All Priorities</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
+              <option value="">Tất cả mức độ</option>
+              <option value="low">Thấp</option>
+              <option value="medium">Trung bình</option>
+              <option value="high">Cao</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Category
+              Danh mục
             </label>
             <select
               value={filters.category}
               onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
               className="w-full border border-gray-300 rounded-md px-3 py-2"
             >
-              <option value="">All Categories</option>
+              <option value="">Tất cả danh mục</option>
               {/* Categories will be populated dynamically */}
             </select>
           </div>

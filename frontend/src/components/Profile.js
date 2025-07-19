@@ -3,8 +3,8 @@ import React from 'react';
 const Profile = () => {
   return (
     <div className="page-container">
-      <h1>Profile</h1>
-      <p>This page will show user profile information.</p>
+      <h1>Hồ sơ cá nhân</h1>
+      <p>Trang này sẽ hiển thị thông tin hồ sơ người dùng.</p>
     </div>
   );
 };

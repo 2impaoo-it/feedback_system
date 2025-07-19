@@ -66,8 +66,8 @@ const Register = () => {
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-header">
-            <h2>Registration Successful!</h2>
-            <p>Your account has been created. Redirecting to login...</p>
+            <h2>Đăng ký thành công!</h2>
+            <p>Tài khoản của bạn đã được tạo. Đang chuyển hướng đến trang đăng nhập...</p>
           </div>
         </div>
       </div>
@@ -78,8 +78,8 @@ const Register = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h2>Create Account</h2>
-          <p>Join our feedback system to get started</p>
+          <h2>Tạo tài khoản</h2>
+          <p>Tham gia hệ thống phản hồi để bắt đầu</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -90,27 +90,27 @@ const Register = () => {
           )}
 
           <div className="form-group">
-            <label htmlFor="firstName">First Name</label>
+            <label htmlFor="firstName">Họ</label>
             <input
               type="text"
               id="firstName"
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              placeholder="Enter your first name"
+              placeholder="Nhập họ của bạn"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="lastName">Last Name</label>
+            <label htmlFor="lastName">Tên</label>
             <input
               type="text"
               id="lastName"
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              placeholder="Enter your last name"
+              placeholder="Nhập tên của bạn"
               required
             />
           </div>
@@ -123,70 +123,70 @@ const Register = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Enter your email"
+              placeholder="Nhập email của bạn"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Mật khẩu</label>
             <input
               type="password"
               id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder="Create a password"
+              placeholder="Tạo mật khẩu"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">Xác nhận mật khẩu</label>
             <input
               type="password"
               id="confirmPassword"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Confirm your password"
+              placeholder="Xác nhận mật khẩu"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="phone">Phone (Optional)</label>
+            <label htmlFor="phone">Số điện thoại (Tùy chọn)</label>
             <input
               type="tel"
               id="phone"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              placeholder="Enter your phone number"
+              placeholder="Nhập số điện thoại"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="company">Company (Optional)</label>
+            <label htmlFor="company">Công ty (Tùy chọn)</label>
             <input
               type="text"
               id="company"
               name="company"
               value={formData.company}
               onChange={handleChange}
-              placeholder="Enter your company"
+              placeholder="Nhập tên công ty"
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="department">Department (Optional)</label>
+            <label htmlFor="department">Phòng ban (Tùy chọn)</label>
             <input
               type="text"
               id="department"
               name="department"
               value={formData.department}
               onChange={handleChange}
-              placeholder="Enter your department"
+              placeholder="Nhập phòng ban"
             />
           </div>
 
@@ -195,15 +195,15 @@ const Register = () => {
             className="btn btn-primary btn-full"
             disabled={loading}
           >
-            {loading ? 'Creating Account...' : 'Create Account'}
+            {loading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
           </button>
         </form>
 
         <div className="auth-footer">
           <p>
-            Already have an account? 
+            Đã có tài khoản? 
             <Link to="/login" className="auth-link">
-              Login here
+              Đăng nhập tại đây
             </Link>
           </p>
         </div>

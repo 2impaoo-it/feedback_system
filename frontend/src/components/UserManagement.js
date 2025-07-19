@@ -46,11 +46,11 @@ const UserManagement = ({ user }) => {
         setEditingUser(null);
         setError('');
       } else {
-        setError('Failed to update user role');
+        setError('Không thể cập nhật vai trò người dùng');
       }
     } catch (error) {
       console.error('Error updating user role:', error);
-      setError('Failed to update user role');
+      setError('Không thể cập nhật vai trò người dùng');
     } finally {
       setUpdatingRole(false);
     }
@@ -58,7 +58,7 @@ const UserManagement = ({ user }) => {
 
   const handleToggleActive = async (userId, isActive) => {
     if (userId === user.id) {
-      setError('You cannot deactivate your own account');
+      setError('Bạn không thể vô hiệu hóa tài khoản của chính mình');
       return;
     }
 
@@ -70,11 +70,11 @@ const UserManagement = ({ user }) => {
         ));
         setError('');
       } else {
-        setError('Failed to update user status');
+        setError('Không thể cập nhật trạng thái người dùng');
       }
     } catch (error) {
       console.error('Error updating user status:', error);
-      setError('Failed to update user status');
+      setError('Không thể cập nhật trạng thái người dùng');
     }
   };
 
@@ -117,7 +117,7 @@ const UserManagement = ({ user }) => {
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
-            User Management
+            Quản lý người dùng
           </h3>
           
           {error && (
@@ -131,19 +131,19 @@ const UserManagement = ({ user }) => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
+                    Người dùng
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
+                    Vai trò
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    Trạng thái
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Last Login
+                    Đăng nhập lần cuối
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Hành động
                   </th>
                 </tr>
               </thead>
@@ -163,7 +163,7 @@ const UserManagement = ({ user }) => {
                           <div className="text-sm font-medium text-gray-900">
                             {userData.customer && userData.customer.firstName ? 
                               `${userData.customer.firstName} ${userData.customer.lastName}` : 
-                              'No profile'
+                              'Chưa có hồ sơ'
                             }
                           </div>
                           <div className="text-sm text-gray-500">

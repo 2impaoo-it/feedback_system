@@ -3,8 +3,8 @@ import React from 'react';
 const Categories = () => {
   return (
     <div className="page-container">
-      <h1>Categories</h1>
-      <p>This page will show feedback categories.</p>
+      <h1>Danh mục</h1>
+      <p>Trang này sẽ hiển thị các danh mục phản hồi.</p>
     </div>
   );
 };

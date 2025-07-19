@@ -45,6 +45,14 @@ const Dashboard = ({ user }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [realtimeStats, setRealtimeStats] = useState({
     connectedUsers: 0,
+    authenticatedUsers: 0,
+    usersByRole: {
+      admin: 0,
+      moderator: 0,
+      customer: 0,
+      guest: 0
+    },
+    onlineUsers: [],
     todayFeedbacks: 0
   });
 
@@ -103,7 +111,15 @@ const Dashboard = ({ user }) => {
   const handleConnectionStats = (data) => {
     setRealtimeStats(prev => ({
       ...prev,
-      connectedUsers: data.connectedUsers
+      connectedUsers: data.connectedUsers || 0,
+      authenticatedUsers: data.authenticatedUsers || 0,
+      usersByRole: data.usersByRole || {
+        admin: 0,
+        moderator: 0,
+        customer: 0,
+        guest: 0
+      },
+      onlineUsers: data.onlineUsers || []
     }));
   };
 
@@ -230,23 +246,31 @@ const Dashboard = ({ user }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Bảng điều khiển</h1>
           <p className="text-gray-600 mt-1">
-            Welcome back, {user.email}! Here's your feedback system overview.
+            Xin chào {user.email}! Đây là tổng quan hệ thống phản hồi của bạn.
           </p>
         </div>
         <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-          <div className="flex items-center space-x-2 text-sm">
-            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-gray-600">
-              {realtimeStats.connectedUsers} users online
-            </span>
+          <div className="flex items-center space-x-4 text-sm">
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-gray-600">
+                {realtimeStats.authenticatedUsers} người dùng đã đăng nhập
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span className="text-gray-600">
+                {realtimeStats.connectedUsers} kết nối tổng
+              </span>
+            </div>
           </div>
           <button
             onClick={loadDashboardStats}
             className="btn-outline btn-sm"
           >
-            Refresh
+            Làm mới
           </button>
         </div>
       </div>
@@ -282,6 +306,87 @@ const Dashboard = ({ user }) => {
           </motion.div>
         ))}
       </div>
+
+      {/* Online Users Statistics */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="card"
+      >
+        <div className="card-header">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+            <FiUsers className="w-5 h-5 mr-2" />
+            Thống kê người dùng trực tuyến
+          </h3>
+        </div>
+        <div className="card-body">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {realtimeStats.authenticatedUsers}
+              </div>
+              <div className="text-sm text-green-700">Đã đăng nhập</div>
+            </div>
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {realtimeStats.usersByRole.admin}
+              </div>
+              <div className="text-sm text-blue-700">Quản trị viên</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">
+                {realtimeStats.usersByRole.moderator}
+              </div>
+              <div className="text-sm text-purple-700">Điều hành viên</div>
+            </div>
+            <div className="text-center p-4 bg-orange-50 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">
+                {realtimeStats.usersByRole.customer}
+              </div>
+              <div className="text-sm text-orange-700">Khách hàng</div>
+            </div>
+          </div>
+          
+          {realtimeStats.onlineUsers.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-3">
+                Người dùng đang trực tuyến ({realtimeStats.onlineUsers.length})
+              </h4>
+              <div className="max-h-40 overflow-y-auto">
+                <div className="space-y-2">
+                  {realtimeStats.onlineUsers.map((onlineUser, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {onlineUser.email}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Vai trò: {onlineUser.role === 'admin' ? 'Quản trị viên' : 
+                                     onlineUser.role === 'moderator' ? 'Điều hành viên' : 
+                                     onlineUser.role === 'customer' ? 'Khách hàng' : onlineUser.role}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        {new Date(onlineUser.connectedAt).toLocaleTimeString('vi-VN')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {realtimeStats.onlineUsers.length === 0 && (
+            <div className="text-center py-4 text-gray-500">
+              Hiện tại không có người dùng nào đang trực tuyến
+            </div>
+          )}
+        </div>
+      </motion.div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

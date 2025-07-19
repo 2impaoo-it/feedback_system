@@ -21,7 +21,7 @@ const Navbar = ({ user, onLogout }) => {
     <nav className="navbar">
       <div className="navbar-brand">
         <Link to="/" className="brand-link">
-          <h2>Feedback System</h2>
+          <h2>Hệ thống Phản hồi HUTECH</h2>
         </Link>
       </div>
 
@@ -33,20 +33,20 @@ const Navbar = ({ user, onLogout }) => {
                 to="/dashboard" 
                 className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
               >
-                Dashboard
+                Bảng điều khiển
               </Link>
               <Link 
                 to="/feedback" 
                 className={`nav-link ${isActive('/feedback') ? 'active' : ''}`}
               >
-                Feedback
+                Phản hồi
               </Link>
               {user.role === 'admin' && (
                 <Link 
                   to="/admin" 
                   className={`nav-link ${isActive('/admin') ? 'active' : ''}`}
                 >
-                  Admin
+                  Quản trị
                 </Link>
               )}
             </div>
@@ -54,10 +54,10 @@ const Navbar = ({ user, onLogout }) => {
             <div className="navbar-user">
               <NotificationCenter user={user} />
               <span className="user-info">
-                Welcome, {user.name || user.username || user.email || 'User'}
+                Xin chào, {user.name || user.username || user.email || 'Người dùng'}
               </span>
               <button onClick={handleLogout} className="btn btn-outline">
-                Logout
+                Đăng xuất
               </button>
             </div>
           </>
@@ -67,13 +67,13 @@ const Navbar = ({ user, onLogout }) => {
               to="/login" 
               className={`nav-link ${isActive('/login') ? 'active' : ''}`}
             >
-              Login
+              Đăng nhập
             </Link>
             <Link 
               to="/register" 
               className={`nav-link ${isActive('/register') ? 'active' : ''}`}
             >
-              Register
+              Đăng ký
             </Link>
           </div>
         )}

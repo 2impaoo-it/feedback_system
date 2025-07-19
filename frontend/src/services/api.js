@@ -94,10 +94,14 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: (credentials) => api.post('/auth/login', credentials),
+  forceLogin: (credentials) => api.post('/auth/force-login', credentials),
   register: (userData) => api.post('/auth/register', userData),
   logout: () => api.post('/auth/logout'),
   getProfile: () => api.get('/auth/me'),
   updateProfile: (data) => api.put('/auth/profile', data),
+  getSessionInfo: () => api.get('/auth/session-info'),
+  getActiveSessions: () => api.get('/auth/active-sessions'),
+  logoutAllSessions: () => api.post('/auth/logout-all-sessions'),
   changePassword: (data) => api.post('/auth/change-password', data),
   refreshToken: () => api.post('/auth/refresh-token'),
   

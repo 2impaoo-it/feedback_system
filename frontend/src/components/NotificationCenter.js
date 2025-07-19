@@ -51,7 +51,7 @@ const NotificationCenter = ({ user }) => {
       }
     } catch (error) {
       console.error('🔔 NotificationCenter: Error fetching notifications:', error);
-      toast.error('Failed to load notifications');
+      toast.error('Không thể tải thông báo');
     } finally {
       setLoading(false);
     }
@@ -133,7 +133,7 @@ const NotificationCenter = ({ user }) => {
       toast.success('All notifications marked as read');
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
-      toast.error('Failed to mark all as read');
+      toast.error('Không thể đánh dấu đã đọc tất cả');
     }
   };
 
@@ -221,7 +221,7 @@ const NotificationCenter = ({ user }) => {
                     onClick={markAllAsRead}
                     className="text-sm text-blue-600 hover:text-blue-800"
                   >
-                    Mark all read
+                    Đánh dấu đã đọc tất cả
                   </button>
                 )}
                 <button
@@ -239,12 +239,12 @@ const NotificationCenter = ({ user }) => {
             {loading && notifications.length === 0 ? (
               <div className="p-4 text-center text-gray-500">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-2">Loading notifications...</p>
+                <p className="mt-2">Đang tải thông báo...</p>
               </div>
             ) : notifications.length === 0 ? (
               <div className="p-8 text-center text-gray-500">
                 <FaBell size={24} className="mx-auto mb-2 opacity-50" />
-                <p>No notifications yet</p>
+                <p>Chưa có thông báo nào</p>
               </div>
             ) : (
               <>
@@ -326,7 +326,7 @@ const NotificationCenter = ({ user }) => {
               }}
               className="w-full text-sm text-center text-blue-600 hover:text-blue-800"
             >
-              View all notifications
+              Xem tất cả thông báo
             </button>
           </div>
         </div>

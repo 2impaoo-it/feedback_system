@@ -78,19 +78,39 @@ class SocketService {
     // Authentication events
     this.socket.on('authenticated', (data) => {
       console.log('✅ Authentication successful:', data.user);
-      toast.success('Connected to real-time updates');
+      toast.success('Kết nối real-time thành công');
       this.emit('authenticated', data);
     });
 
     this.socket.on('auth_error', (error) => {
       console.error('❌ Authentication failed:', error);
-      toast.error('Failed to connect to real-time updates');
+      toast.error('Kết nối real-time thất bại');
       this.emit('auth_error', error);
+    });
+
+    // Force logout event
+    this.socket.on('force_logout', (data) => {
+      console.log('🚪 Force logout received:', data);
+      toast.error(data.message || 'Bạn đã bị đăng xuất từ thiết bị khác');
+      
+      // Clear local storage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Disconnect socket
+      this.disconnect();
+      
+      // Redirect to login page
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
+      
+      this.emit('force_logout', data);
     });
 
     // Rate limiting
     this.socket.on('rate_limit_exceeded', (data) => {
-      toast.error(data.message || 'Rate limit exceeded');
+      toast.error(data.message || 'Quá nhiều yêu cầu, vui lòng thử lại sau');
       this.emit('rate_limit_exceeded', data);
     });
 
