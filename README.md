@@ -1,111 +1,234 @@
-# 🎯 Hệ Thống Quản Lý Phản Hồi Khách Hàng Thời Gian Thực
+# 🎯 Hệ Thống Quản Lý Phản Hồi Khách Hàng HUTECH
 
-Một hệ thống web hoàn chỉnh để quản lý phản hồi khách hàng với khả năng xử lý thời gian thực, phân tích NLP, và dashboard thống kê.
+Một hệ thống web hoàn chỉnh để quản lý phản hồi khách hàng với khả năng xử lý thời gian thực, phân tích NLP, và dashboard thống kê dành riêng cho HUTECH.
+
+## 🚀 Khởi Chạy Nhanh với Docker
+
+### 📋 Yêu Cầu Hệ Thống
+- **Docker**: Version 20.0+ 
+- **Docker Compose**: Version 2.0+
+- **RAM**: Tối thiểu 4GB (khuyến nghị 8GB)
+- **Disk**: Tối thiểu 2GB dung lượng trống
+- **OS**: Windows 10/11, macOS, hoặc Linux
+
+### ⚡ Cài Đặt và Chạy (1 Phút)
+
+```bash
+# 1. Clone repository
+git clone https://github.com/2impaoo-it/feedback_system.git
+cd feedback_system
+
+# 2. Khởi động tất cả services (1 lệnh duy nhất)
+docker-compose up -d
+
+# 3. Truy cập ứng dụng
+# Frontend: http://localhost:3000
+# API: http://localhost:3001
+# MongoDB Express: http://localhost:8081
+# Redis Commander: http://localhost:8082
+```
+
+### 🔧 Cấu Hình Môi Trường (Tùy Chọn)
+
+Tạo file `.env` để tùy chỉnh:
+```env
+# Database
+MONGODB_URI=mongodb://admin:password123@localhost:27017/feedback_system?authSource=admin
+
+# JWT Secret
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+# Email Configuration (Tùy chọn)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+
+# Redis
+REDIS_URL=redis://localhost:6379
+
+# Environment
+NODE_ENV=development
+```
+
+### 📊 Các Service và Port
+
+| Service | Port | URL | Mô Tả |
+|---------|------|-----|-------|
+| **Frontend** | 3000 | http://localhost:3000 | Giao diện người dùng React |
+| **Backend API** | 3001 | http://localhost:3001 | REST API + WebSocket |
+| **MongoDB** | 27017 | - | Database chính |
+| **Redis** | 6379 | - | Cache và Session |
+| **Mongo Express** | 8081 | http://localhost:8081 | Quản lý database GUI |
+| **Redis Commander** | 8082 | http://localhost:8082 | Quản lý Redis GUI |
+| **NLP Service** | 8000 | http://localhost:8000 | AI/ML Processing |
+| **Nginx** | 80, 443 | http://localhost | Reverse Proxy |
 
 ## 🏗️ Kiến Trúc Hệ Thống
 
 ```
-├── 🖥️ Frontend (React.js + Tailwind CSS)
-│   ├── Socket.IO Client (WebSocket)
-│   ├── Chart.js (Biểu đồ thống kê)
-│   └── React Query (State management)
-│
-├── ⚙️ Backend (Node.js + Express)
-│   ├── Socket.IO Server (WebSocket)
-│   ├── JWT Authentication
-│   ├── Rate Limiting
-│   └── API REST
-│
-├── 🗄️ Database (MongoDB)
-│   ├── 8+ Collections (3NF)
-│   ├── Indexes tối ưu
-│   └── Aggregation pipelines
-│
-├── 🚀 Cache (Redis)
-│   ├── Session storage
-│   ├── Real-time data
-│   └── Rate limiting
-│
-├── 🤖 NLP Service (Python + FastAPI)
-│   ├── Hugging Face Transformers
-│   ├── Sentiment Analysis
-│   └── Topic Classification
-│
-└── 🌐 Reverse Proxy (NGINX)
-    ├── Load balancing
-    ├── SSL termination
-    └── Static file serving
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   🖥️ Frontend    │    │   ⚙️ Backend     │    │  🤖 NLP Service │
+│   React.js      │◄──►│   Node.js       │◄──►│   Python/FastAPI│
+│   Tailwind CSS  │    │   Express.js    │    │   Transformers  │
+│   Socket.IO     │    │   Socket.IO     │    │   Sentiment AI  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │  🌐 Nginx Proxy │
+                    │  Load Balancer  │
+                    │  SSL/TLS        │
+                    └─────────────────┘
+                                 │
+                    ┌─────────────────────────────────┐
+                    │         💾 Data Layer           │
+                    │  ┌─────────────┐ ┌───────────┐  │
+                    │  │ 🗄️ MongoDB │ │ � Redis  │  │
+                    │  │  Database   │ │   Cache   │  │
+                    │  └─────────────┘ └───────────┘  │
+                    └─────────────────────────────────┘
 ```
-
 ## ✨ Tính Năng Chính
 
 ### 🔐 Hệ Thống Phân Quyền
+- **SuperAdmin**: Quản lý người dùng, phân quyền roles
+- **Admin**: Quản lý feedback, trả lời phản hồi khách hàng  
 - **Customer**: Gửi phản hồi, xem lịch sử cá nhân
-- **Moderator**: Xử lý phản hồi, phân công công việc
-- **Admin**: Quản lý toàn bộ hệ thống
 
 ### 📡 Real-time Features
 - WebSocket cho thông báo tức thì
 - Live dashboard với số liệu thống kê
-- Real-time status updates
-- Typing indicators
+- Real-time status updates và typing indicators
 
 ### 🧠 AI & Analytics
 - Phân tích cảm xúc (Sentiment Analysis)
 - Phân loại chủ đề tự động
-- Gợi ý danh mục
 - Dashboard với biểu đồ tương tác
+- Báo cáo thống kê chi tiết
 
 ### 🛡️ Bảo Mật
-- JWT Authentication
-- Rate limiting
-- Input validation
-- SQL injection prevention
-- XSS protection
+- JWT Authentication với session management
+- Rate limiting để chống spam
+- Input validation và sanitization
+- Role-based access control (RBAC)
 
-## 🚀 Cài Đặt và Chạy
+## 🎮 Hướng Dẫn Sử Dụng
 
-### Yêu Cầu Hệ Thống
-- Node.js 18+
-- Python 3.11+
-- MongoDB 7.0+
-- Redis 7.0+
-- Docker & Docker Compose
+### 🔑 Tài Khoản Mặc Định
 
-### 🐳 Chạy với Docker (Khuyến nghị)
+| Role | Email | Password | Mô Tả |
+|------|-------|----------|-------|
+| **Admin** | admin@example.com | admin123 | Quản lý feedback, trả lời khách hàng |
+| **SuperAdmin** | Tạo qua UI | - | Quản lý users và phân quyền |
 
-1. **Clone repository**
+### � Quy Trình Sử Dụng
+
+1. **Khách Hàng Gửi Feedback**
+   - Truy cập http://localhost:3000
+   - Đăng ký/Đăng nhập tài khoản
+   - Gửi feedback với mô tả chi tiết
+
+2. **Admin Xử Lý Feedback**  
+   - Đăng nhập với tài khoản admin
+   - Xem danh sách "Tất cả phản hồi"
+   - Click vào feedback để xem chi tiết
+   - Trả lời feedback của khách hàng
+   - Cập nhật trạng thái (Pending → Resolved)
+
+3. **SuperAdmin Quản Lý Users**
+   - Tạo tài khoản SuperAdmin qua UI
+   - Quản lý danh sách users
+   - Phân quyền roles (Admin/Customer)
+
+## 🛠️ Lệnh Docker Hữu Ích
+
 ```bash
-git clone <repository-url>
-cd feedback_system
-```
-
-2. **Cấu hình environment**
-```bash
-# Copy và chỉnh sửa các file .env
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
-
-3. **Khởi động toàn bộ hệ thống**
-```bash
+# Khởi động tất cả services
 docker-compose up -d
-```
 
-4. **Kiểm tra services**
-```bash
+# Xem logs của tất cả services
+docker-compose logs -f
+
+# Xem logs của service cụ thể
+docker-compose logs -f backend
+docker-compose logs -f frontend
+
+# Restart service cụ thể
+docker-compose restart backend
+
+# Stop tất cả services
+docker-compose down
+
+# Stop và xóa toàn bộ data
+docker-compose down -v
+
+# Rebuild images khi có thay đổi code
+docker-compose up -d --build
+
+# Xem trạng thái các services
 docker-compose ps
+
+# Vào container để debug
+docker-compose exec backend bash
+docker-compose exec mongodb mongosh
 ```
 
-### 📋 URLs Truy Cập
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3001
-- **NLP Service**: http://localhost:8000
-- **MongoDB Express**: http://localhost:8081
-- **Redis Commander**: http://localhost:8082
+## 🐛 Xử Lý Sự Cố
 
-### 👤 Tài Khoản Mặc Định
-- **Email**: admin@hutech.edu.vn
+### ❌ Lỗi Thường Gặp
+
+**1. Port đã được sử dụng**
+```bash
+# Kiểm tra port đang sử dụng
+netstat -tlnp | grep :3000
+# Hoặc trên Windows
+netstat -an | findstr :3000
+
+# Dừng process đang dùng port
+sudo kill -9 <PID>
+```
+
+**2. Database connection failed**
+```bash
+# Kiểm tra MongoDB container
+docker-compose logs mongodb
+
+# Restart database
+docker-compose restart mongodb
+```
+
+**3. Frontend không load được**
+```bash
+# Clear browser cache và cookies
+# Hoặc thử truy cập chế độ ẩn danh
+
+# Kiểm tra logs frontend
+docker-compose logs frontend
+```
+
+**4. API không response**
+```bash
+# Kiểm tra backend logs
+docker-compose logs backend
+
+# Test API trực tiếp
+curl http://localhost:3001/api/health
+```
+
+### � Reset Toàn Bộ Hệ Thống
+
+```bash
+# Dừng và xóa tất cả containers + data
+docker-compose down -v --remove-orphans
+
+# Xóa images (nếu cần)
+docker system prune -a
+
+# Khởi động lại từ đầu
+docker-compose up -d --build
+```
 - **Password**: admin123
 
 ## 🛠️ Development Setup
@@ -124,55 +247,67 @@ npm install
 npm start
 ```
 
-### NLP Service Development
+## 🔧 Development (Tùy Chọn)
+
+### Chạy Development Mode
 ```bash
+# Chỉ chạy database services
+docker-compose up -d mongodb redis
+
+# Chạy backend trong dev mode
+cd backend
+npm install
+npm run dev
+
+# Chạy frontend trong dev mode  
+cd frontend
+npm install
+npm start
+
+# Chạy NLP service
 cd backend/services
 pip install -r requirements.txt
-uvicorn nlpService:app --reload
+uvicorn nlpService:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## 📊 Cơ Sở Dữ Liệu (MongoDB - 3NF)
+## 📊 Cơ Sở Dữ Liệu
 
-### Collections Overview
-1. **users** - Thông tin người dùng và xác thực
-2. **customers** - Hồ sơ khách hàng chi tiết
-3. **feedbackcategories** - Danh mục phản hồi
-4. **feedbacks** - Phản hồi chính
-5. **feedbackhistory** - Lịch sử thay đổi
-6. **analytics** - Dữ liệu thống kê
-7. **notifications** - Thông báo hệ thống
-8. **feedbackcategorymappings** - Mapping nhiều-nhiều
+### 🗄️ MongoDB Collections
+- **users**: Thông tin đăng nhập và phân quyền
+- **customers**: Hồ sơ khách hàng chi tiết  
+- **feedback**: Nội dung phản hồi chính
+- **notifications**: Thông báo hệ thống
+- **categories**: Danh mục phân loại
 
-### Indexes Tối Ưu
-```javascript
-// Users
-db.users.createIndex({ email: 1 }, { unique: true })
-db.users.createIndex({ role: 1, isActive: 1 })
+### 🚀 Redis Cache
+- **sessions**: Quản lý phiên đăng nhập
+- **rate_limit**: Giới hạn request
+- **real_time**: Dữ liệu thời gian thực
 
-// Feedbacks
-db.feedbacks.createIndex({ customerId: 1, createdAt: -1 })
-db.feedbacks.createIndex({ status: 1, priority: 1 })
-db.feedbacks.createIndex({ title: "text", content: "text" })
+## � API Endpoints
+
+### 🔐 Authentication
+```http
+POST /api/auth/login          # Đăng nhập
+POST /api/auth/register       # Đăng ký
+GET  /api/auth/me             # Thông tin user
+POST /api/auth/logout         # Đăng xuất
 ```
 
-## 🔧 API Documentation
+### 💬 Feedback Management  
+```http
+GET    /api/feedback          # Danh sách feedback
+POST   /api/feedback          # Tạo feedback mới
+GET    /api/feedback/:id      # Chi tiết feedback
+POST   /api/feedback/:id/reply # Admin trả lời feedback
+PUT    /api/feedback/:id/status # Cập nhật trạng thái
+```
 
-### Authentication Endpoints
-```
-POST /api/auth/login
-POST /api/auth/register
-GET  /api/auth/me
-PUT  /api/auth/profile
-```
-
-### Feedback Endpoints
-```
-GET    /api/feedback
-POST   /api/feedback
-GET    /api/feedback/:id
-PUT    /api/feedback/:id
-DELETE /api/feedback/:id
-POST   /api/feedback/:id/assign
+### 👥 User Management (SuperAdmin only)
+```http
+GET    /api/users             # Danh sách users
+PUT    /api/users/:id/role    # Cập nhật role
+DELETE /api/users/:id         # Xóa user
 ```
 
 ### Categories Endpoints
@@ -212,107 +347,139 @@ socket.emit('send_comment', { feedbackId, comment })
 
 ### Server Events
 ```javascript
+## 🌐 WebSocket Events
+
+### Client Events (Frontend → Backend)
+```javascript
+// Kết nối với authentication
+socket.emit('authenticate', { token: 'jwt-token' })
+
+// Join room theo role
+socket.emit('join', { room: 'admin' })
+```
+
+### Server Events (Backend → Frontend)  
+```javascript
 // Real-time updates
 socket.on('newFeedback', handleNewFeedback)
-socket.on('feedbackUpdated', handleFeedbackUpdate)
-socket.on('new_comment', handleNewComment)
+socket.on('feedbackReplied', handleFeedbackReply)  
+socket.on('statusUpdated', handleStatusUpdate)
+socket.on('notification', handleNotification)
 ```
 
 ## 🧪 Testing
 
-### Backend Tests
+### Health Check
 ```bash
-cd backend
-npm test
+# Kiểm tra tất cả services
+curl http://localhost:3001/api/health
+curl http://localhost:8000/health
+
+# Test WebSocket connection
+# Mở browser console tại http://localhost:3000
+# Kiểm tra network tab cho WebSocket connection
 ```
 
-### Frontend Tests
+### Database Testing
 ```bash
-cd frontend
-npm test
+# Truy cập MongoDB
+docker-compose exec mongodb mongosh -u admin -p password123
+
+# Kiểm tra collections
+use feedback_system
+show collections
+db.users.find()
 ```
 
-### Load Testing
-```bash
-# Sử dụng Artillery cho load testing
-npm install -g artillery
-artillery run load-test.yml
-```
+## � Production Deployment
 
-## 📦 Deployment
+### 📋 Checklist Trước Khi Deploy
 
-### Production Environment
-1. **Set environment variables**
-```bash
-NODE_ENV=production
-MONGODB_URI=mongodb://production-db:27017/feedback_system
-JWT_SECRET=your-production-secret
-```
+- [ ] Thay đổi JWT_SECRET thành key mạnh
+- [ ] Cấu hình HTTPS/SSL certificates  
+- [ ] Setup backup tự động cho MongoDB
+- [ ] Cấu hình monitoring và logging
+- [ ] Test load balancing
+- [ ] Kiểm tra security headers
 
-2. **Build và deploy**
+### 🏭 Production Commands
 ```bash
+# Build production images
+docker-compose -f docker-compose.prod.yml build
+
+# Deploy to production
 docker-compose -f docker-compose.prod.yml up -d
+
+# Monitor logs
+docker-compose -f docker-compose.prod.yml logs -f
+
+# Health check
+curl https://your-domain.com/api/health
 ```
 
-3. **SSL Configuration**
+### � Monitoring
 ```bash
-# Cấu hình SSL certificate trong nginx/ssl/
-# Uncomment HTTPS server block trong nginx.conf
+# Xem resource usage
+docker stats
+
+# Backup database
+docker-compose exec mongodb mongodump --uri="mongodb://admin:password123@localhost:27017/feedback_system" --out=/backup
+
+# View system metrics
+docker-compose exec backend pm2 monit
 ```
 
-## 🔍 Troubleshooting
+## 🤝 Đóng Góp
 
-### Common Issues
-
-1. **MongoDB connection failed**
+### 🛠️ Setup Development Environment
 ```bash
-# Kiểm tra MongoDB service
-docker-compose logs mongodb
+# Clone và setup
+git clone https://github.com/2impaoo-it/feedback_system.git
+cd feedback_system
+
+# Tạo branch mới cho feature
+git checkout -b feature/ten-tinh-nang-moi
+
+# Chạy development mode
+docker-compose up -d mongodb redis
+cd backend && npm run dev
+cd frontend && npm start
 ```
 
-2. **Redis connection timeout**
+### 📝 Quy Tắc Commit
 ```bash
-# Restart Redis service
-docker-compose restart redis
+# Format commit message
+feat: thêm tính năng reply feedback
+fix: sửa lỗi validation
+docs: cập nhật README
+style: format code
+refactor: tối ưu query database
+test: thêm unit tests
 ```
 
-3. **NLP service slow startup**
-```bash
-# NLP models cần thời gian download
-docker-compose logs nlp-service
-```
+## 📞 Hỗ Trợ
 
-4. **WebSocket connection failed**
-```bash
-# Kiểm tra CORS settings
-# Verify Socket.IO configuration
-```
+### 🐛 Báo Lỗi
+- Tạo issue tại [GitHub Issues](https://github.com/2impaoo-it/feedback_system/issues)
+- Cung cấp logs và steps để reproduce
+- Thông tin OS, Docker version
 
-## 📝 Tối Ưu Hóa
+### 💬 Thảo Luận
+- [GitHub Discussions](https://github.com/2impaoo-it/feedback_system/discussions)
+- Email: support@hutech.edu.vn
 
-### Performance Tips
-1. **Database Optimization**
-   - Sử dụng indexes phù hợp
-   - Aggregation pipeline thay vì multiple queries
-   - Connection pooling
+### 📚 Tài Liệu Thêm
+- [API Documentation](http://localhost:3001/api-docs)  
+- [Architecture Decision Records](./docs/adr/)
+- [Database Schema](./docs/database-schema.md)
 
-2. **Caching Strategy**
-   - Redis cho session data
-   - Browser caching cho static files
-   - API response caching
+---
 
-3. **Frontend Optimization**
-   - Code splitting
-   - Lazy loading
-   - Image optimization
+## ⭐ Cảm ơn
 
-## 🤝 Contributing
+Hệ thống được phát triển cho HUTECH với mục tiêu cải thiện trải nghiệm phản hồi của sinh viên và cán bộ.
 
-1. Fork repository
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
+**Made with ❤️ by HUTECH IT Team**
 
 ## 📄 License
 
