@@ -11,7 +11,7 @@ import {
   FiList
 } from 'react-icons/fi';
 
-const Sidebar = ({ user, isOpen, onClose }) => {
+const Sidebar = ({ user, customer, isOpen, onClose }) => {
   const navigation = [
     {
       name: 'Bảng điều khiển',
@@ -33,7 +33,7 @@ const Sidebar = ({ user, isOpen, onClose }) => {
     },
     {
       name: 'Tất cả phản hồi',
-      href: '/feedback/all',
+      href: '/feedback?view=all',
       icon: FiList,
       roles: ['admin', 'superAdmin']
     },
@@ -74,10 +74,10 @@ const Sidebar = ({ user, isOpen, onClose }) => {
       {/* Sidebar */}
       <div className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
-        lg:translate-x-0 lg:static lg:inset-0
+        lg:translate-x-0 lg:static lg:inset-0 flex flex-col
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 flex-shrink-0">{/* Add flex-shrink-0 */}
           <h1 className="text-xl font-bold text-gray-900">
             Hệ thống Phản hồi
           </h1>
@@ -89,19 +89,28 @@ const Sidebar = ({ user, isOpen, onClose }) => {
           </button>
         </div>
 
-        <nav className="mt-6 px-3">
-          <div className="space-y-1">
+        <nav className="flex-1 mt-6 px-3 overflow-y-auto"> {/* Make nav scrollable and flexible */}
+          <div className="space-y-1 pb-20"> {/* Add padding bottom to prevent overlap with user info */}
             {filteredNavigation.map((item) => (
               <NavLink
                 key={item.name}
                 to={item.href}
-                className={({ isActive }) =>
-                  `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                    isActive
+                end={item.href === '/feedback'}
+                className={({ isActive }) => {
+                  // Custom logic for "Tất cả phản hồi" - check for view=all query param
+                  const currentUrl = window.location.pathname + window.location.search;
+                  const isAllFeedbackActive = item.href === '/feedback?view=all' && currentUrl.includes('view=all');
+                  const isMyFeedbackActive = item.href === '/feedback' && !currentUrl.includes('view=all') && window.location.pathname === '/feedback';
+                  
+                  const finalIsActive = item.href === '/feedback?view=all' ? isAllFeedbackActive : 
+                                       item.href === '/feedback' ? isMyFeedbackActive : isActive;
+                  
+                  return `group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                    finalIsActive
                       ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
                       : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                   }`
-                }
+                }}
                 onClick={() => {
                   // Close sidebar on mobile after navigation
                   if (window.innerWidth < 1024) {
@@ -109,28 +118,34 @@ const Sidebar = ({ user, isOpen, onClose }) => {
                   }
                 }}
               >
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
+                <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                <span className="truncate">{item.name}</span>
               </NavLink>
             ))}
           </div>
         </nav>
 
         {/* User info at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                 <span className="text-sm font-medium text-blue-700">
-                  {user?.email?.charAt(0).toUpperCase()}
+                  {customer 
+                    ? `${customer.firstName?.charAt(0) || ''}${customer.lastName?.charAt(0) || ''}`.toUpperCase()
+                    : user?.email?.charAt(0).toUpperCase()
+                  }
                 </span>
               </div>
             </div>
-            <div className="ml-3">
+            <div className="ml-3 flex-1 min-w-0"> {/* Add flex-1 and min-w-0 for proper text truncation */}
               <p className="text-sm font-medium text-gray-700 truncate">
-                {user?.email}
+                {customer 
+                  ? `${customer.firstName} ${customer.lastName}`.trim() 
+                  : user?.email?.split('@')[0]?.replace(/[._-]/g, ' ')?.replace(/\b\w/g, l => l.toUpperCase()) || user?.email
+                }
               </p>
-              <p className="text-xs text-gray-500 capitalize">
+              <p className="text-xs text-gray-500 capitalize truncate"> {/* Add truncate here too */}
                 {user?.role}
               </p>
             </div>

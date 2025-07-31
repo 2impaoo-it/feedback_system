@@ -1,15 +1,15 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import NotificationCenter from './NotificationCenter';
 
-const Navbar = ({ user, onLogout }) => {
+const Navbar = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
 
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    }
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 

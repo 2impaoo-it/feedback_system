@@ -55,6 +55,13 @@ api.interceptors.response.use(
       const { status, data } = response;
       
       switch (status) {
+        case 409:
+          // Session conflict - return data with status info for special handling
+          return {
+            ...data,
+            status: 409
+          };
+          
         case 401:
           // Unauthorized - remove token and redirect to login
           removeToken();
@@ -141,6 +148,8 @@ export const feedbackAPI = {
   update: (id, data) => api.put(`/feedback/${id}`, data),
   delete: (id) => api.delete(`/feedback/${id}`),
   assign: (id, assignedTo) => api.post(`/feedback/${id}/assign`, { assignedTo }),
+  reply: (id, data) => api.post(`/feedback/${id}/reply`, data),
+  updateStatus: (id, data) => api.put(`/feedback/${id}/status`, data),
   
   // Dashboard and statistics
   getDashboardStats: () => api.get('/feedback/stats/dashboard'),

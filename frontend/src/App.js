@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
+// Context
+import { AuthProvider, useAuth } from './context/AuthContext';
+
 // Components
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
@@ -43,16 +46,19 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
+function AppContent() {
+  const { user, customer, loading, isAuthenticated, updateUser } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState({ connected: false });
-
-  // Initialize app
-  useEffect(() => {
-    initializeApp();
-  }, []);
 
   // Setup socket connection when user is authenticated
   useEffect(() => {
@@ -77,66 +83,6 @@ function App() {
     }
   }, [isAuthenticated, user]);
 
-  const initializeApp = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      
-      if (token) {
-        const response = await authAPI.getProfile();
-        if (response.success) {
-          setUser(response.data.user);
-          setIsAuthenticated(true);
-        } else {
-          localStorage.removeItem('token');
-        }
-      }
-    } catch (error) {
-      console.error('Failed to initialize app:', error);
-      localStorage.removeItem('token');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogin = (userData, token) => {
-    console.log('handleLogin called with:', userData, token);
-    console.log('userData.user:', userData.user);
-    localStorage.setItem('token', token);
-    setUser(userData.user);
-    setIsAuthenticated(true);
-    console.log('User state set to:', userData.user);
-    
-    // Force reload to ensure authentication state is updated
-    setTimeout(() => {
-      const userRole = userData.user.role;
-      console.log('Navigating based on role:', userRole);
-      if (userRole === 'customer') {
-        console.log('Redirecting to /feedback');
-        window.location.replace('/feedback');
-      } else {
-        console.log('Redirecting to /');
-        window.location.replace('/');
-      }
-    }, 200);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsAuthenticated(false);
-      socketService.disconnect();
-    }
-  };
-
-  const updateUser = (updatedUser) => {
-    setUser(prev => ({ ...prev, ...updatedUser }));
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -146,39 +92,37 @@ function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          {/* Toast notifications */}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        {/* Toast notifications */}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+            success: {
+              duration: 3000,
               style: {
-                background: '#363636',
-                color: '#fff',
+                background: '#10B981',
               },
-              success: {
-                duration: 3000,
-                style: {
-                  background: '#10B981',
-                },
+            },
+            error: {
+              duration: 5000,
+              style: {
+                background: '#EF4444',
               },
-              error: {
-                duration: 5000,
-                style: {
-                  background: '#EF4444',
-                },
-              },
-            }}
-          />
+            },
+          }}
+        />
 
-          {isAuthenticated ? (
+        {isAuthenticated ? (
             <>
               {/* Navigation */}
               <Navbar 
                 user={user}
-                onLogout={handleLogout}
                 onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
                 connectionStatus={connectionStatus}
               />
@@ -187,6 +131,7 @@ function App() {
                 {/* Sidebar */}
                 <Sidebar
                   user={user}
+                  customer={customer}
                   isOpen={sidebarOpen}
                   onClose={() => setSidebarOpen(false)}
                 />
@@ -307,11 +252,11 @@ function App() {
             <Routes>
               <Route
                 path="/login"
-                element={<Login onLogin={handleLogin} />}
+                element={<Login />}
               />
               <Route
                 path="/register"
-                element={<Register onRegister={handleLogin} />}
+                element={<Register />}
               />
               <Route
                 path="/create-super-admin"
@@ -322,10 +267,9 @@ function App() {
                 element={<Navigate to="/login" />}
               />
             </Routes>
-          )}
-        </div>
-      </Router>
-    </QueryClientProvider>
+        )}
+      </div>
+    </Router>
   );
 }
 

@@ -220,8 +220,8 @@ const feedbackSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['open', 'in_progress', 'resolved', 'closed'],
-        default: 'open',
+        enum: ['submitted', 'received', 'resolved'],
+        default: 'submitted',
         index: true
     },
     sentiment: {
@@ -261,6 +261,37 @@ const feedbackSchema = new mongoose.Schema({
         url: String,
         mimeType: String,
         size: Number
+    }],
+    adminReply: {
+        content: {
+            type: String,
+            maxlength: 2000,
+            default: null
+        },
+        repliedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null
+        },
+        repliedAt: {
+            type: Date,
+            default: null
+        }
+    },
+    statusHistory: [{
+        status: {
+            type: String,
+            enum: ['submitted', 'received', 'resolved']
+        },
+        changedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        changedAt: {
+            type: Date,
+            default: Date.now
+        },
+        note: String
     }]
 }, {
     timestamps: true

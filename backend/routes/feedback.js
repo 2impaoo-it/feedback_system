@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const Joi = require('joi');
 const { 
     Feedback, 
     Customer, 
@@ -233,6 +234,7 @@ router.get('/',
                 }
                 query.customerId = customer._id;
             }
+            // Admin and moderators can see all feedbacks (no additional filter)
 
             // Apply filters
             if (status) query.status = status;
@@ -673,8 +675,8 @@ router.get('/stats/dashboard',
                 // Calculate statistics
                 const [
                     totalFeedbacks,
-                    openFeedbacks,
-                    inProgressFeedbacks,
+                    submittedFeedbacks,
+                    receivedFeedbacks,
                     resolvedFeedbacks,
                     urgentFeedbacks,
                     sentimentStats,
@@ -682,10 +684,10 @@ router.get('/stats/dashboard',
                     recentFeedbacks
                 ] = await Promise.all([
                     Feedback.countDocuments({}),
-                    Feedback.countDocuments({ status: 'open' }),
-                    Feedback.countDocuments({ status: 'in_progress' }),
+                    Feedback.countDocuments({ status: 'submitted' }),
+                    Feedback.countDocuments({ status: 'received' }),
                     Feedback.countDocuments({ status: 'resolved' }),
-                    Feedback.countDocuments({ priority: 'urgent', status: { $ne: 'closed' } }),
+                    Feedback.countDocuments({ priority: 'urgent', status: { $ne: 'resolved' } }),
                     Feedback.aggregate([
                         { $group: { _id: '$sentiment', count: { $sum: 1 } } }
                     ]),
@@ -712,6 +714,7 @@ router.get('/stats/dashboard',
                     Feedback.find({})
                         .populate('customerId', 'firstName lastName')
                         .populate('categoryId', 'name color')
+                        .populate('adminReply.repliedBy', 'email')
                         .sort({ createdAt: -1 })
                         .limit(5)
                         .lean()
@@ -726,10 +729,14 @@ router.get('/stats/dashboard',
                 stats = {
                     totals: {
                         feedbacks: totalFeedbacks,
-                        open: openFeedbacks,
-                        inProgress: inProgressFeedbacks,
+                        submitted: submittedFeedbacks,
+                        received: receivedFeedbacks,
                         resolved: resolvedFeedbacks,
-                        urgent: urgentFeedbacks
+                        urgent: urgentFeedbacks,
+                        // Calculate percentages
+                        submittedPercentage: totalFeedbacks > 0 ? Math.round((submittedFeedbacks / totalFeedbacks) * 100) : 0,
+                        receivedPercentage: totalFeedbacks > 0 ? Math.round((receivedFeedbacks / totalFeedbacks) * 100) : 0,
+                        resolvedPercentage: totalFeedbacks > 0 ? Math.round((resolvedFeedbacks / totalFeedbacks) * 100) : 0
                     },
                     averageRating: avgRating[0]?.avgRating || 0,
                     sentimentDistribution: sentimentStats,
@@ -751,6 +758,219 @@ router.get('/stats/dashboard',
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve dashboard statistics'
+            });
+        }
+    }
+);
+
+/**
+ * @route   POST /api/feedback/:id/reply
+ * @desc    Admin reply to feedback
+ * @access  Private (Admin/Moderator only)
+ */
+router.post('/:id/reply',
+    authenticateToken,
+    authorizeRoles(['admin', 'moderator']),
+    validate(Joi.object({
+        content: Joi.string().min(10).max(2000).required(),
+        status: Joi.string().valid('submitted', 'received', 'resolved').optional()
+    })),
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { content, status } = req.body;
+
+            // Find feedback
+            const feedback = await Feedback.findById(id)
+                .populate('customerId', 'firstName lastName email userId')
+                .populate('categoryId', 'name');
+
+            if (!feedback) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Feedback not found'
+                });
+            }
+
+            // Update feedback with admin reply
+            const updateData = {
+                adminReply: {
+                    content,
+                    repliedBy: req.user._id,
+                    repliedAt: new Date()
+                }
+            };
+
+            // Update status if provided
+            if (status && status !== feedback.status) {
+                updateData.status = status;
+                
+                // Add to status history
+                updateData.$push = {
+                    statusHistory: {
+                        status: status,
+                        changedBy: req.user._id,
+                        changedAt: new Date(),
+                        note: `Status changed during admin reply`
+                    }
+                };
+            }
+
+            const updatedFeedback = await Feedback.findByIdAndUpdate(
+                id,
+                updateData,
+                { new: true }
+            ).populate('customerId', 'firstName lastName email')
+            .populate('categoryId', 'name color')
+            .populate('assignedTo', 'email')
+            .populate('adminReply.repliedBy', 'email');
+
+            // Create notification for customer
+            if (feedback.customerId && feedback.customerId.userId) {
+                const notification = new Notification({
+                    userId: feedback.customerId.userId,
+                    type: 'feedback_updated',
+                    title: 'Admin đã phản hồi feedback của bạn',
+                    message: `Feedback "${feedback.title}" đã nhận được phản hồi từ admin.`,
+                    relatedFeedbackId: feedback._id,
+                    priority: 'high'
+                });
+                await notification.save();
+            }
+
+            // Clear cache
+            await cache.del(`feedback:${id}`);
+            await cache.del(`feedbacks:*`);
+
+            // Emit real-time update
+            req.app.get('io').emit('feedbackReplied', {
+                feedbackId: feedback._id,
+                title: feedback.title,
+                reply: content,
+                repliedBy: req.user.email,
+                status: updatedFeedback.status,
+                timestamp: new Date()
+            });
+
+            res.json({
+                success: true,
+                message: 'Phản hồi feedback thành công',
+                data: updatedFeedback
+            });
+
+        } catch (error) {
+            console.error('Reply feedback error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi phản hồi feedback'
+            });
+        }
+    }
+);
+
+/**
+ * @route   PUT /api/feedback/:id/status
+ * @desc    Update feedback status
+ * @access  Private (Admin/Moderator only)
+ */
+router.put('/:id/status',
+    authenticateToken,
+    authorizeRoles(['admin', 'moderator']),
+    validate({
+        body: {
+            type: 'object',
+            properties: {
+                status: {
+                    type: 'string',
+                    enum: ['submitted', 'received', 'resolved']
+                },
+                note: {
+                    type: 'string',
+                    maxLength: 500
+                }
+            },
+            required: ['status'],
+            additionalProperties: false
+        }
+    }),
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { status, note } = req.body;
+
+            // Find feedback
+            const feedback = await Feedback.findById(id)
+                .populate('customerId', 'firstName lastName email userId');
+
+            if (!feedback) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Feedback not found'
+                });
+            }
+
+            // Update feedback status
+            const updatedFeedback = await Feedback.findByIdAndUpdate(
+                id,
+                {
+                    status: status,
+                    $push: {
+                        statusHistory: {
+                            status: status,
+                            changedBy: req.user._id,
+                            changedAt: new Date(),
+                            note: note || `Status changed to ${status}`
+                        }
+                    }
+                },
+                { new: true }
+            ).populate('customerId', 'firstName lastName email')
+            .populate('categoryId', 'name color')
+            .populate('assignedTo', 'email');
+
+            // Create notification for customer
+            if (feedback.customerId && feedback.customerId.userId) {
+                const statusMessages = {
+                    submitted: 'đã được gửi',
+                    received: 'đã được tiếp nhận',
+                    resolved: 'đã được xử lý xong'
+                };
+
+                const notification = new Notification({
+                    userId: feedback.customerId.userId,
+                    type: 'feedback_status',
+                    title: 'Cập nhật trạng thái feedback',
+                    message: `Feedback "${feedback.title}" ${statusMessages[status]}.`,
+                    relatedId: feedback._id,
+                    priority: status === 'resolved' ? 'high' : 'medium'
+                });
+                await notification.save();
+            }
+
+            // Clear cache
+            await cache.del(`feedback:${id}`);
+            await cache.del(`feedbacks:*`);
+
+            // Emit real-time update
+            req.app.get('io').emit('feedbackStatusUpdated', {
+                feedbackId: feedback._id,
+                title: feedback.title,
+                status: status,
+                updatedBy: req.user.email,
+                timestamp: new Date()
+            });
+
+            res.json({
+                success: true,
+                message: 'Cập nhật trạng thái thành công',
+                data: updatedFeedback
+            });
+
+        } catch (error) {
+            console.error('Update feedback status error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi cập nhật trạng thái'
             });
         }
     }

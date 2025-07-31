@@ -12,19 +12,25 @@ const authenticateToken = async (req, res, next) => {
         const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
         if (!token) {
+            console.log(`🔍 Auth - No token provided`);
             return res.status(401).json({
                 success: false,
                 message: 'Access token required'
             });
         }
 
+        console.log(`🔍 Auth - Token received: ${token.substring(0, 20)}...`);
+
         // Verify JWT token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(`🔍 Auth - Token decoded successfully, userId: ${decoded.userId}`);
         
         // Get user from database (ensure user still exists and is active)
         const user = await User.findById(decoded.userId).select('-password');
+        console.log(`🔍 Auth - User found: ${!!user}, active: ${user?.isActive}`);
         
         if (!user || !user.isActive) {
+            console.log(`🔍 Auth - User invalid or inactive`);
             return res.status(401).json({
                 success: false,
                 message: 'Invalid or expired token'
@@ -32,7 +38,9 @@ const authenticateToken = async (req, res, next) => {
         }
 
         // Check session validity
+        console.log(`🔍 Validating session for user ${user._id.toString()}`);
         const isValidSession = sessionManager.validateSession(user._id.toString(), token);
+        console.log(`🔍 Session validation result: ${isValidSession}`);
         if (!isValidSession) {
             return res.status(401).json({
                 success: false,
@@ -44,6 +52,8 @@ const authenticateToken = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
+        console.log(`🔍 Auth - Error occurred: ${error.name} - ${error.message}`);
+        
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({
                 success: false,
@@ -79,13 +89,19 @@ const authorizeRoles = (...roles) => {
             });
         }
 
-        if (!roles.includes(req.user.role)) {
+        // Flatten the roles array in case it's nested
+        const flatRoles = roles.flat();
+        console.log(`🔐 Role check - Required roles: ${JSON.stringify(flatRoles)}, User role: ${req.user.role}`);
+
+        if (!flatRoles.includes(req.user.role)) {
+            console.log(`❌ Role check failed - User ${req.user.email} has role ${req.user.role}, but needs one of: ${JSON.stringify(flatRoles)}`);
             return res.status(403).json({
                 success: false,
                 message: 'Insufficient permissions'
             });
         }
 
+        console.log(`✅ Role check passed for user ${req.user.email}`);
         next();
     };
 };

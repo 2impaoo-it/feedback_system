@@ -147,46 +147,46 @@ const Dashboard = ({ user }) => {
 
   const statCards = [
     {
-      title: 'Total Feedbacks',
+      title: 'Tổng số phản hồi',
       value: stats.totals.feedbacks,
       icon: FiMessageSquare,
       color: 'blue',
-      change: '+12%'
+      percentage: '100%'
     },
     {
-      title: 'Open',
-      value: stats.totals.open,
+      title: 'Đã gửi',
+      value: stats.totals.submitted,
       icon: FiClock,
       color: 'yellow',
-      change: '+5%'
+      percentage: `${stats.totals.submittedPercentage}%`
     },
     {
-      title: 'In Progress',
-      value: stats.totals.inProgress,
+      title: 'Đã tiếp nhận',
+      value: stats.totals.received,
       icon: FiTrendingUp,
       color: 'orange',
-      change: '+8%'
+      percentage: `${stats.totals.receivedPercentage}%`
     },
     {
-      title: 'Resolved',
+      title: 'Đã xử lý',
       value: stats.totals.resolved,
       icon: FiCheckCircle,
       color: 'green',
-      change: '+15%'
+      percentage: `${stats.totals.resolvedPercentage}%`
     },
     {
-      title: 'Urgent',
+      title: 'Ưu tiên cao',
       value: stats.totals.urgent,
       icon: FiAlertTriangle,
       color: 'red',
-      change: '-3%'
+      percentage: stats.totals.feedbacks > 0 ? `${Math.round((stats.totals.urgent / stats.totals.feedbacks) * 100)}%` : '0%'
     },
     {
-      title: 'Avg Rating',
+      title: 'Điểm đánh giá TB',
       value: stats.averageRating.toFixed(1),
       icon: FiStar,
       color: 'purple',
-      change: '+0.2'
+      percentage: 'Trên 5 điểm'
     }
   ];
 
@@ -293,10 +293,8 @@ const Dashboard = ({ user }) => {
                 <p className="text-2xl font-bold text-gray-900">
                   {stat.value}
                 </p>
-                <p className={`text-xs ${
-                  stat.change.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {stat.change} from last week
+                <p className={`text-xs text-blue-600`}>
+                  {stat.percentage}
                 </p>
               </div>
               <div className={`p-3 rounded-full bg-${stat.color}-100`}>

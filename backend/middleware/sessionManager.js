@@ -138,24 +138,40 @@ class SessionManager {
     validateSession(userId, sessionId) {
         const session = this.activeSessions.get(userId);
         
+        console.log(`🔍 ValidateSession - UserId: ${userId}`);
+        console.log(`🔍 ValidateSession - SessionId: ${sessionId?.substring(0, 20)}...`);
+        console.log(`🔍 ValidateSession - Found session: ${!!session}`);
+        
         if (!session) {
+            console.log(`🔍 ValidateSession - No session found for user ${userId}`);
             return false;
         }
 
+        console.log(`🔍 ValidateSession - Stored sessionId: ${session.sessionId?.substring(0, 20)}...`);
+        console.log(`🔍 ValidateSession - Session IDs match: ${session.sessionId === sessionId}`);
+        console.log(`🔍 ValidateSession - Full stored sessionId: ${session.sessionId}`);
+        console.log(`🔍 ValidateSession - Full provided sessionId: ${sessionId}`);
+        
         // Kiểm tra session ID khớp
         if (session.sessionId !== sessionId) {
+            console.log(`🔍 ValidateSession - Session ID mismatch`);
             return false;
         }
 
         // Kiểm tra timeout
         const now = new Date();
-        if (now - session.lastActivity > this.sessionTimeout) {
+        const timeDiff = now - session.lastActivity;
+        console.log(`🔍 ValidateSession - Time since last activity: ${timeDiff}ms (timeout: ${this.sessionTimeout}ms)`);
+        
+        if (timeDiff > this.sessionTimeout) {
+            console.log(`🔍 ValidateSession - Session timed out`);
             this.removeSession(userId);
             return false;
         }
 
         // Cập nhật last activity
         session.lastActivity = now;
+        console.log(`🔍 ValidateSession - Session valid, updating lastActivity`);
         return true;
     }
 

@@ -184,11 +184,9 @@ router.post('/login',
                 await user.save();
             }
 
-            // Get customer profile if user is a customer
+            // Get customer profile for all users (admin/superAdmin also have profiles)
             let customer = null;
-            if (user.role === 'customer') {
-                customer = await Customer.findOne({ userId: user._id });
-            }
+            customer = await Customer.findOne({ userId: user._id });
 
             // Remove password from response
             const userResponse = user.toJSON();
